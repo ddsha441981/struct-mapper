@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write # Required for OIDC Trusted Publishing
 
 env:
   CARGO_TERM_COLOR: always
@@ -29,7 +30,7 @@ jobs:
 
       # Publish derive crate first (dependency)
       - name: Publish struct-mapper-derive
-        run: cargo publish -p struct-mapper-derive --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: cargo publish -p struct-mapper-derive
 
       # Wait for crates.io to index
       - name: Wait for indexing
@@ -37,7 +38,7 @@ jobs:
 
       # Publish main crate
       - name: Publish struct-mapper
-        run: cargo publish -p struct-mapper --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: cargo publish -p struct-mapper
 
       # Create GitHub Release
       - name: Create GitHub Release
