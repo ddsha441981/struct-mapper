@@ -2,7 +2,7 @@
 
 use struct_mapper::MapFrom;
 
-//  Source structs 
+//  Source structs
 
 struct AddressEntity {
     street: String,
@@ -16,7 +16,7 @@ struct OrderEntity {
     address: AddressEntity,
 }
 
-//  Target structs 
+//  Target structs
 
 #[derive(Debug)]
 #[allow(dead_code)]

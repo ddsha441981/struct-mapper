@@ -1,6 +1,6 @@
 use struct_mapper::MapFrom;
 
-//  Test 1: Basic same-field mapping 
+//  Test 1: Basic same-field mapping
 
 struct Source1 {
     name: String,
@@ -25,7 +25,7 @@ fn test_basic_same_fields() {
     assert_eq!(target.age, 30);
 }
 
-//  Test 2: Renamed field 
+//  Test 2: Renamed field
 
 struct Source2 {
     user_name: String,
@@ -52,7 +52,7 @@ fn test_renamed_fields() {
     assert_eq!(target.age, 25);
 }
 
-//  Test 3: Skip + Default 
+//  Test 3: Skip + Default
 
 struct Source3 {
     name: String,
@@ -79,7 +79,7 @@ fn test_skip_default() {
     assert_eq!(target.count, 0); // u32::default()
 }
 
-//  Test 4: Into conversion 
+//  Test 4: Into conversion
 
 struct Inner {
     value: String,
@@ -122,7 +122,7 @@ fn test_into_conversion() {
     assert_eq!(target.inner.value, "nested");
 }
 
-//  Test 5: Custom function 
+//  Test 5: Custom function
 
 fn double(x: u32) -> u64 {
     (x * 2) as u64
@@ -152,7 +152,7 @@ fn test_custom_function() {
     assert_eq!(target.count, 42);
 }
 
-//  Test 6: Combined attributes 
+//  Test 6: Combined attributes
 
 fn to_upper(s: String) -> String {
     s.to_uppercase()

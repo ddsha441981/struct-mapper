@@ -9,19 +9,13 @@ use crate::parse::FieldMapAttr;
 #[derive(Debug)]
 pub enum FieldMapping {
     /// Direct: `target.field = source.field` (same name, same type)
-    Direct {
-        source_field: Ident,
-    },
+    Direct { source_field: Ident },
     /// Renamed: `target.field = source.other_name`
-    Renamed {
-        source_field: Ident,
-    },
+    Renamed { source_field: Ident },
     /// Skipped: `target.field = Default::default()`
     Skipped,
     /// Into: `target.field = source.field.into()`
-    IntoConvert {
-        source_field: Ident,
-    },
+    IntoConvert { source_field: Ident },
     /// Custom function: `target.field = func(source.field)`
     WithFunc {
         source_field: Ident,

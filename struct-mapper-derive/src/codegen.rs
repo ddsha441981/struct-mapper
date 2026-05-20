@@ -34,9 +34,10 @@ pub fn expand_map_from(input: &DeriveInput) -> syn::Result<TokenStream> {
     let mut field_assignments = Vec::new();
 
     for field in fields {
-        let field_name = field.ident.as_ref().ok_or_else(|| {
-            error::not_a_struct(input.ident.span())
-        })?;
+        let field_name = field
+            .ident
+            .as_ref()
+            .ok_or_else(|| error::not_a_struct(input.ident.span()))?;
 
         // Parse #[map(...)] attributes on this field
         let field_attr = parse_field_map_attr(field)?;
