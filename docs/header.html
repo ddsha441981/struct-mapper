@@ -1,0 +1,93 @@
+<style>
+  /* struct-mapper custom rustdoc styling */
+
+  /* Hero banner on crate page */
+  .docblock > h2:first-of-type {
+    font-size: 1.8em;
+    border-bottom: 3px solid #e67e22;
+    padding-bottom: 0.3em;
+    margin-top: 1.5em;
+  }
+
+  /* Section headers with accent color */
+  .docblock h3 {
+    color: #e67e22;
+    border-left: 4px solid #e67e22;
+    padding-left: 12px;
+    margin-top: 2em;
+    font-size: 1.3em;
+  }
+
+  /* Feature guide sub-headers */
+  .docblock h3[id^="1-"],
+  .docblock h3[id^="2-"],
+  .docblock h3[id^="3-"],
+  .docblock h3[id^="4-"],
+  .docblock h3[id^="5-"],
+  .docblock h3[id^="6-"] {
+    background: linear-gradient(90deg, rgba(230, 126, 34, 0.1), transparent);
+    padding: 8px 12px;
+    border-radius: 4px;
+  }
+
+  /* Code blocks with better contrast */
+  .docblock pre {
+    border-left: 3px solid #e67e22;
+    border-radius: 6px;
+  }
+
+  /* Tables look more premium */
+  .docblock table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+  }
+
+  .docblock table th {
+    background: #e67e22;
+    color: white;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+  }
+
+  .docblock table td {
+    padding: 8px 14px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .docblock table tr:hover td {
+    background: rgba(230, 126, 34, 0.05);
+  }
+
+  /* Blockquotes styled as tips */
+  .docblock blockquote {
+    border-left: 4px solid #3498db;
+    background: rgba(52, 152, 219, 0.08);
+    padding: 12px 16px;
+    border-radius: 0 6px 6px 0;
+    margin: 1em 0;
+  }
+
+  /* Horizontal rules as section dividers */
+  .docblock hr {
+    border: none;
+    height: 2px;
+    background: linear-gradient(90deg, #e67e22, transparent);
+    margin: 2em 0;
+  }
+
+  /* inline code in docs */
+  .docblock code {
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.9em;
+  }
+</style>
+
+<div style="text-align: center; margin: 20px 0 30px;">
+  <span style="font-size: 2.5em;">🔄</span>
+  <p style="margin: 8px 0 0; font-size: 0.95em; opacity: 0.7;">
+    Zero-boilerplate struct field mapping for Rust
+  </p>
+</div>

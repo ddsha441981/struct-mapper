@@ -1,0 +1,22 @@
+[package]
+name = "struct-mapper"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+authors.workspace = true
+readme = "../README.md"
+description = "Derive macro to auto-generate From<Source> for Target by mapping struct fields — zero boilerplate struct conversion"
+keywords = ["derive", "macro", "struct", "mapping", "from"]
+categories = ["rust-patterns", "development-tools::procedural-macro-helpers"]
+
+[dependencies]
+struct-mapper-derive = { path = "../struct-mapper-derive", version = "0.1.0" }
+
+[dev-dependencies]
+trybuild = "1"
+
+[package.metadata.docs.rs]
+rustdoc-args = ["--html-in-header", "docs/header.html", "--default-theme", "ayu"]

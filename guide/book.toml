@@ -1,0 +1,11 @@
+[book]
+authors = ["Deendayal Kumawat"]
+language = "en"
+src = "src"
+title = "struct-mapper User Guide"
+
+[output.html]
+default-theme = "ayu"
+preferred-dark-theme = "ayu"
+git-repository-url = "https://github.com/ddsha441981/struct-mapper"
+edit-url-template = "https://github.com/ddsha441981/struct-mapper/edit/main/guide/src/{path}"
