@@ -11,7 +11,7 @@ Add the crate to your `Cargo.toml`:
 struct-mapper = "0.1"
 ```
 
-*Minimum Supported Rust Version: `1.70.0`*
+*Minimum Supported Rust Version: `1.71.0`*
 
 ## Basic Example
 

@@ -9,7 +9,7 @@
 [![Crates.io](https://img.shields.io/badge/crates.io-v0.1.0-orange?style=flat-square&logo=rust)](https://crates.io/crates/struct-mapper)
 [![Docs](https://img.shields.io/badge/docs.rs-struct--mapper-blue?style=flat-square&logo=docs.rs)](https://docs.rs/struct-mapper)
 [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-green?style=flat-square)](https://github.com/ddsha441981/struct-mapper)
-[![MSRV](https://img.shields.io/badge/MSRV-1.70.0-blue?style=flat-square&logo=rust)](https://www.rust-lang.org)
+[![MSRV](https://img.shields.io/badge/MSRV-1.71.0-blue?style=flat-square&logo=rust)](https://www.rust-lang.org)
 
 [📖 Documentation](https://docs.rs/struct-mapper) · [📦 Crates.io](https://crates.io/crates/struct-mapper) · [🐛 Report Bug](https://github.com/ddsha441981/struct-mapper/issues) · [💡 Request Feature](https://github.com/ddsha441981/struct-mapper/issues)
 
@@ -106,7 +106,7 @@ Add to your `Cargo.toml`:
 struct-mapper = "0.1"
 ```
 
-**Minimum Supported Rust Version:** `1.70.0`
+**Minimum Supported Rust Version:** `1.71.0`
 
 ---
 
