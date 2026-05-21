@@ -2,11 +2,11 @@
 
 # 🔄 struct-mapper
 
-**Derive macro to auto-generate `From<Source>` for your structs**
+**Derive macro to auto-generate `From<Source>` and `TryFrom<Source>` for your structs**
 **— zero boilerplate field mapping.**
 
 [![CI](https://github.com/ddsha441981/struct-mapper/actions/workflows/ci.yml/badge.svg)](https://github.com/ddsha441981/struct-mapper/actions/workflows/ci.yml)
-[![Crates.io](https://img.shields.io/badge/crates.io-v0.1.0-orange?style=flat-square&logo=rust)](https://crates.io/crates/struct-mapper)
+[![Crates.io](https://img.shields.io/badge/crates.io-v0.2.0-orange?style=flat-square&logo=rust)](https://crates.io/crates/struct-mapper)
 [![Docs](https://img.shields.io/badge/docs.rs-struct--mapper-blue?style=flat-square&logo=docs.rs)](https://docs.rs/struct-mapper)
 [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-green?style=flat-square)](https://github.com/ddsha441981/struct-mapper)
 [![MSRV](https://img.shields.io/badge/MSRV-1.71.0-blue?style=flat-square&logo=rust)](https://www.rust-lang.org)
@@ -17,7 +17,7 @@
 
 ---
 
-Stop writing tedious manual `From` implementations for struct-to-struct conversions. `struct-mapper` generates them at **compile time** with **zero runtime overhead**.
+Stop writing tedious manual `From` and `TryFrom` implementations for struct-to-struct conversions. `struct-mapper` generates them at **compile time** with **zero runtime overhead**.
 
 ```rust
 use struct_mapper::MapFrom;
@@ -103,7 +103,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-struct-mapper = "0.1"
+struct-mapper = "0.2"
 ```
 
 **Minimum Supported Rust Version:** `1.71.0`
@@ -260,17 +260,61 @@ struct OrderResponse {
 
 ---
 
+## 🔄 Fallible Conversions — `TryMapFrom` (v0.2)
+
+When conversions can **fail** (type narrowing, parsing, validation), use `TryMapFrom`:
+
+```rust
+use struct_mapper::TryMapFrom;
+use std::num::ParseIntError;
+
+fn parse_port(s: String) -> Result<u16, ParseIntError> {
+    s.parse::<u16>()
+}
+
+struct RawConfig {
+    port_str: String,
+    max_conn: i64,
+    host: String,
+}
+
+#[derive(TryMapFrom)]
+#[try_map_from(RawConfig)]
+struct ValidConfig {
+    #[map(from = "port_str", try_with = "parse_port")]
+    port: u16,                    // fallible: string → u16
+    #[map(try_into)]
+    max_conn: u32,                // fallible: i64 → u32
+    host: String,                 // direct (infallible)
+}
+
+// Success:
+let raw = RawConfig { port_str: "8080".into(), max_conn: 100, host: "localhost".into() };
+let config: ValidConfig = raw.try_into().unwrap();
+
+// Failure — tells you exactly which field failed:
+let bad = RawConfig { port_str: "not_a_port".into(), max_conn: 100, host: "x".into() };
+let err = ValidConfig::try_from(bad).unwrap_err();
+assert_eq!(err.field, "port");
+println!("{}", err); // "mapping failed at field `port`: invalid digit found in string"
+```
+
+---
+
 ## 📋 Attribute Reference
 
 | Attribute | Applies To | Description |
 |:----------|:----------:|:------------|
 | `#[map_from(Type)]` | Struct | Source type to generate `From<Type>` for |
+| `#[try_map_from(Type)]` | Struct | Source type to generate `TryFrom<Type>` for |
 | `#[map(from = "name")]` | Field | Map from a differently-named source field |
 | `#[map(skip, default)]` | Field | Skip this field, use `Default::default()` |
 | `#[map(into)]` | Field | Call `.into()` on the source value |
 | `#[map(with = "fn")]` | Field | Apply a custom conversion function |
+| `#[map(try_into)]` | Field | Call `.try_into()` on the source value *(TryMapFrom only)* |
+| `#[map(try_with = "fn")]` | Field | Apply a fallible function *(TryMapFrom only)* |
 
-> 💡 **Tip:** Attributes can be combined: `#[map(from = "old_name", with = "convert_fn")]`
+> 💡 **Tip:** Attributes can be combined: `#[map(from = "old_name", try_with = "parse_fn")]`
 
 ---
 
@@ -308,6 +352,8 @@ How does `struct-mapper` compare to alternatives?
 | Skip + default | ✅ | ⚠️ | ⚠️ | ⚠️ |
 | Nested `.into()` | ✅ | ✅ | ❌ | ⚠️ |
 | Custom function | ✅ | ✅ | ⚠️ | ⚠️ |
+| **`TryFrom` support** | ✅ | ❌ | ❌ | ❌ |
+| **Fallible custom fn** | ✅ | ❌ | ❌ | ❌ |
 | **Clear error messages** | ✅ | ❌ | ❌ | ❌ |
 | **Clean syntax** | ✅ | ⚠️ | ⚠️ | ⚠️ |
 | Compile-time only | ✅ | ✅ | ✅ | ✅ |
@@ -320,15 +366,14 @@ How does `struct-mapper` compare to alternatives?
 - [x] `From` — infallible struct conversion
 - [x] Field renaming, skipping, nesting, custom functions
 - [x] Clear compile-time error messages
-- [ ] `TryFrom` — fallible conversions (`v0.2`)
+- [x] `TryFrom` — fallible conversions (`v0.2`) ✅
 - [ ] Enum variant mapping (`v0.3`)
 - [ ] Bi-directional mapping (`v0.4`)
 
 ---
 
-## ⚠️ Limitations (v0.1)
+## ⚠️ Limitations (v0.2)
 
-- Only `From` (infallible conversion). `TryFrom` is planned for v0.2.
 - Only named struct fields. Tuple structs and enums are not yet supported.
 - Generics on the target struct are supported; generic source types require manual annotation.
 

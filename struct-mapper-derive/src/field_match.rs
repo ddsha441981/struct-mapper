@@ -21,6 +21,13 @@ pub enum FieldMapping {
         source_field: Ident,
         func_path: String,
     },
+    /// TryInto: `target.field = source.field.try_into().map_err(...)?`
+    TryIntoConvert { source_field: Ident },
+    /// Fallible custom function: `target.field = func(source.field).map_err(...)?`
+    TryWithFunc {
+        source_field: Ident,
+        func_path: String,
+    },
 }
 
 /// Resolve how a target field should be populated from the source.
@@ -40,7 +47,7 @@ pub fn resolve_field_mapping(
         target_field_name.clone()
     };
 
-    // Case 2: Custom function
+    // Case 2: Custom function (infallible)
     if let Some(ref func) = attr.with {
         return Ok(FieldMapping::WithFunc {
             source_field,
@@ -48,12 +55,25 @@ pub fn resolve_field_mapping(
         });
     }
 
-    // Case 3: Into conversion
+    // Case 3: Fallible custom function
+    if let Some(ref func) = attr.try_with {
+        return Ok(FieldMapping::TryWithFunc {
+            source_field,
+            func_path: func.clone(),
+        });
+    }
+
+    // Case 4: TryInto conversion
+    if attr.try_into {
+        return Ok(FieldMapping::TryIntoConvert { source_field });
+    }
+
+    // Case 5: Into conversion
     if attr.into {
         return Ok(FieldMapping::IntoConvert { source_field });
     }
 
-    // Case 4: Direct mapping (renamed or same name)
+    // Case 6: Direct mapping (renamed or same name)
     if attr.from.is_some() {
         Ok(FieldMapping::Renamed { source_field })
     } else {

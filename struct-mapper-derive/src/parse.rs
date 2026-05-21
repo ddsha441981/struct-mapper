@@ -33,6 +33,10 @@ pub struct FieldMapAttr {
     pub into: bool,
     /// Custom conversion function path.
     pub with: Option<String>,
+    /// Call `.try_into()` on the source value (fallible).
+    pub try_into: bool,
+    /// Fallible custom conversion function path.
+    pub try_with: Option<String>,
 }
 
 /// Parse the `#[map_from(SourceType)]` attribute from a struct's attributes.
@@ -53,6 +57,24 @@ pub fn parse_map_from_attr(attrs: &[Attribute]) -> syn::Result<MapFromAttr> {
     ))
 }
 
+/// Parse the `#[try_map_from(SourceType)]` attribute from a struct's attributes.
+pub fn parse_try_map_from_attr(attrs: &[Attribute]) -> syn::Result<MapFromAttr> {
+    for attr in attrs {
+        if attr.path().is_ident("try_map_from") {
+            return attr.parse_args::<MapFromAttr>();
+        }
+    }
+    Err(syn::Error::new(
+        proc_macro2::Span::call_site(),
+        "missing `#[try_map_from(SourceType)]` attribute.\n\
+         Add `#[try_map_from(YourSourceStruct)]` to specify which struct to map from.\n\n\
+         Example:\n  \
+         #[derive(TryMapFrom)]\n  \
+         #[try_map_from(UserEntity)]\n  \
+         struct UserResponse { ... }",
+    ))
+}
+
 /// Keyword-like tokens used in `#[map(...)]` attributes.
 mod kw {
     syn::custom_keyword!(from);
@@ -60,6 +82,8 @@ mod kw {
     syn::custom_keyword!(default);
     syn::custom_keyword!(into);
     syn::custom_keyword!(with);
+    syn::custom_keyword!(try_into);
+    syn::custom_keyword!(try_with);
 }
 
 /// A single key=value or flag inside `#[map(...)]`.
@@ -69,6 +93,8 @@ enum MapOption {
     Default,
     Into,
     With(String),
+    TryInto,
+    TryWith(String),
 }
 
 impl Parse for MapOption {
@@ -94,6 +120,14 @@ impl Parse for MapOption {
             input.parse::<Token![=]>()?;
             let lit: LitStr = input.parse()?;
             Ok(MapOption::With(lit.value()))
+        } else if lookahead.peek(kw::try_into) {
+            input.parse::<kw::try_into>()?;
+            Ok(MapOption::TryInto)
+        } else if lookahead.peek(kw::try_with) {
+            input.parse::<kw::try_with>()?;
+            input.parse::<Token![=]>()?;
+            let lit: LitStr = input.parse()?;
+            Ok(MapOption::TryWith(lit.value()))
         } else {
             Err(lookahead.error())
         }
@@ -119,6 +153,8 @@ pub fn parse_field_map_attr(field: &Field) -> syn::Result<FieldMapAttr> {
                 MapOption::Default => result.default = true,
                 MapOption::Into => result.into = true,
                 MapOption::With(func) => result.with = Some(func),
+                MapOption::TryInto => result.try_into = true,
+                MapOption::TryWith(func) => result.try_with = Some(func),
             }
         }
     }
@@ -151,6 +187,36 @@ pub fn parse_field_map_attr(field: &Field) -> syn::Result<FieldMapAttr> {
             span,
             "`#[map(from = \"...\")]` and `#[map(skip)]` are contradictory.\n\
              A field cannot be both mapped from a source and skipped.",
+        ));
+    }
+
+    // Validation: into + try_into is contradictory
+    if result.into && result.try_into {
+        let span = field
+            .ident
+            .as_ref()
+            .map(|i| i.span())
+            .unwrap_or_else(proc_macro2::Span::call_site);
+
+        return Err(syn::Error::new(
+            span,
+            "`#[map(into)]` and `#[map(try_into)]` are contradictory.\n\
+             Use `into` for infallible conversions or `try_into` for fallible ones, not both.",
+        ));
+    }
+
+    // Validation: with + try_with is contradictory
+    if result.with.is_some() && result.try_with.is_some() {
+        let span = field
+            .ident
+            .as_ref()
+            .map(|i| i.span())
+            .unwrap_or_else(proc_macro2::Span::call_site);
+
+        return Err(syn::Error::new(
+            span,
+            "`#[map(with = \"...\")]` and `#[map(try_with = \"...\")]` are contradictory.\n\
+             Use `with` for infallible functions or `try_with` for fallible ones, not both.",
         ));
     }
 

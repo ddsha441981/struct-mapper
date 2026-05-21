@@ -13,7 +13,7 @@ keywords = ["derive", "macro", "struct", "mapping", "from"]
 categories = ["rust-patterns", "development-tools::procedural-macro-helpers"]
 
 [dependencies]
-struct-mapper-derive = { path = "../struct-mapper-derive", version = "0.1.0" }
+struct-mapper-derive = { path = "../struct-mapper-derive", version = "0.2.0" }
 
 [dev-dependencies]
 trybuild = "1"

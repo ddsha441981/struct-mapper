@@ -9,5 +9,6 @@
   - [Nested Conversions](./features/nested.md)
   - [Custom Functions](./features/custom.md)
   - [Combining Attributes](./features/combined.md)
+- [Fallible Conversions (TryFrom)](./features/try-from.md)
 - [Attribute Reference](./attributes.md)
 - [Error Messages](./errors.md)

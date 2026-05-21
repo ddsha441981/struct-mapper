@@ -6,7 +6,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/ddsha441981/struct-mapper"
@@ -14,6 +14,6 @@ homepage = "https://github.com/ddsha441981/struct-mapper"
 documentation = "https://docs.rs/struct-mapper"
 rust-version = "1.71.0"
 authors = ["Deendayal Kumawat <deendayal_kumawat@outlook.com>"]
-description = "Derive macro to auto-generate From<Source> for Target by mapping struct fields"
+description = "Derive macro to auto-generate From<Source> and TryFrom<Source> for Target by mapping struct fields"
 keywords = ["derive", "macro", "struct", "mapping", "from"]
 categories = ["rust-patterns", "development-tools::procedural-macro-helpers"]
