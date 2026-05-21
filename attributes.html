@@ -88,7 +88,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="getting-started.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li class="chapter-item expanded "><a href="features/index.html"><strong aria-hidden="true">3.</strong> Features</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="features/basic.html"><strong aria-hidden="true">3.1.</strong> Basic Mapping</a></li><li class="chapter-item expanded "><a href="features/rename.html"><strong aria-hidden="true">3.2.</strong> Field Renaming</a></li><li class="chapter-item expanded "><a href="features/skip.html"><strong aria-hidden="true">3.3.</strong> Skip & Default</a></li><li class="chapter-item expanded "><a href="features/nested.html"><strong aria-hidden="true">3.4.</strong> Nested Conversions</a></li><li class="chapter-item expanded "><a href="features/custom.html"><strong aria-hidden="true">3.5.</strong> Custom Functions</a></li><li class="chapter-item expanded "><a href="features/combined.html"><strong aria-hidden="true">3.6.</strong> Combining Attributes</a></li></ol></li><li class="chapter-item expanded "><a href="attributes.html" class="active"><strong aria-hidden="true">4.</strong> Attribute Reference</a></li><li class="chapter-item expanded "><a href="errors.html"><strong aria-hidden="true">5.</strong> Error Messages</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="getting-started.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li class="chapter-item expanded "><a href="features/index.html"><strong aria-hidden="true">3.</strong> Features</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="features/basic.html"><strong aria-hidden="true">3.1.</strong> Basic Mapping</a></li><li class="chapter-item expanded "><a href="features/rename.html"><strong aria-hidden="true">3.2.</strong> Field Renaming</a></li><li class="chapter-item expanded "><a href="features/skip.html"><strong aria-hidden="true">3.3.</strong> Skip & Default</a></li><li class="chapter-item expanded "><a href="features/nested.html"><strong aria-hidden="true">3.4.</strong> Nested Conversions</a></li><li class="chapter-item expanded "><a href="features/custom.html"><strong aria-hidden="true">3.5.</strong> Custom Functions</a></li><li class="chapter-item expanded "><a href="features/combined.html"><strong aria-hidden="true">3.6.</strong> Combining Attributes</a></li></ol></li><li class="chapter-item expanded "><a href="features/try-from.html"><strong aria-hidden="true">4.</strong> Fallible Conversions (TryFrom)</a></li><li class="chapter-item expanded "><a href="attributes.html" class="active"><strong aria-hidden="true">5.</strong> Attribute Reference</a></li><li class="chapter-item expanded "><a href="errors.html"><strong aria-hidden="true">6.</strong> Error Messages</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -183,7 +183,8 @@
 <p>This page provides a quick summary of all attributes available in <code>struct-mapper</code>.</p>
 <h2 id="struct-level-attributes"><a class="header" href="#struct-level-attributes">Struct-Level Attributes</a></h2>
 <div class="table-wrapper"><table><thead><tr><th style="text-align: left">Attribute</th><th style="text-align: center">Required</th><th style="text-align: left">Description</th></tr></thead><tbody>
-<tr><td style="text-align: left"><code>#[map_from(Type)]</code></td><td style="text-align: center"><strong>Yes</strong></td><td style="text-align: left">Specifies the source type for <code>From&lt;Type&gt;</code> generation</td></tr>
+<tr><td style="text-align: left"><code>#[map_from(Type)]</code></td><td style="text-align: center"><strong>Yes</strong> (with <code>MapFrom</code>)</td><td style="text-align: left">Specifies the source type for <code>From&lt;Type&gt;</code> generation</td></tr>
+<tr><td style="text-align: left"><code>#[try_map_from(Type)]</code></td><td style="text-align: center"><strong>Yes</strong> (with <code>TryMapFrom</code>)</td><td style="text-align: left">Specifies the source type for <code>TryFrom&lt;Type&gt;</code> generation</td></tr>
 </tbody></table>
 </div>
 <h2 id="field-level-attributes"><a class="header" href="#field-level-attributes">Field-Level Attributes</a></h2>
@@ -192,15 +193,17 @@
 <tr><td style="text-align: left"><code>#[map(skip, default)]</code></td><td style="text-align: left">Skip this field; use <code>Default::default()</code></td></tr>
 <tr><td style="text-align: left"><code>#[map(into)]</code></td><td style="text-align: left">Call <code>.into()</code> on the source field value</td></tr>
 <tr><td style="text-align: left"><code>#[map(with = "path")]</code></td><td style="text-align: left">Apply a conversion function <code>fn(SourceFieldType) -&gt; TargetFieldType</code></td></tr>
+<tr><td style="text-align: left"><code>#[map(try_into)]</code></td><td style="text-align: left">Call <code>.try_into()</code> on the source field value <em>(TryMapFrom only)</em></td></tr>
+<tr><td style="text-align: left"><code>#[map(try_with = "path")]</code></td><td style="text-align: left">Apply a fallible function <code>fn(S) -&gt; Result&lt;T, E&gt;</code> <em>(TryMapFrom only)</em></td></tr>
 </tbody></table>
 </div>
-<p>Attributes can be combined, for example: <code>#[map(from = "old", with = "convert")]</code></p>
+<p>Attributes can be combined, for example: <code>#[map(from = "old", try_with = "parse")]</code></p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="features/combined.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="features/try-from.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -214,7 +217,7 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="features/combined.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="features/try-from.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
