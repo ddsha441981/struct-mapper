@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "ayu";
             const default_dark_theme = "ayu";
-            window.path_to_searchindex_js = "searchindex-37f7dcea.js";
+            window.path_to_searchindex_js = "searchindex-3b3d1227.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-751d93db.js"></script>
+        <script src="toc-0a53999c.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -464,6 +464,94 @@ fn main() {
     assert_eq!(t.request_id, "");
 }</code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
+<h1 id="fallible-conversions--trymapfrom-v02"><a class="header" href="#fallible-conversions--trymapfrom-v02">Fallible Conversions — <code>TryMapFrom</code> (v0.2)</a></h1>
+<p>Sometimes struct conversions can <strong>fail</strong>. For example:</p>
+<ul>
+<li>Converting <code>i64</code> → <code>u32</code> (negative numbers will fail)</li>
+<li>Parsing a <code>String</code> into a number or email</li>
+<li>Validating field values</li>
+</ul>
+<p>For these cases, use <code>#[derive(TryMapFrom)]</code> which generates <code>impl TryFrom&lt;Source&gt; for Target</code>.</p>
+<h2 id="basic-usage"><a class="header" href="#basic-usage">Basic Usage</a></h2>
+<pre><code class="language-rust ignore">use struct_mapper::TryMapFrom;
+
+struct RawInput {
+    count: i64,
+    name: String,
+}
+
+#[derive(TryMapFrom)]
+#[try_map_from(RawInput)]
+struct ValidInput {
+    #[map(try_into)]
+    count: u32,     // i64 → u32 can fail if negative
+    name: String,   // direct (always succeeds)
+}
+
+let raw = RawInput { count: 42, name: "Alice".into() };
+let valid: ValidInput = raw.try_into().unwrap();
+
+// Failure case:
+let bad = RawInput { count: -1, name: "Bob".into() };
+assert!(ValidInput::try_from(bad).is_err());</code></pre>
+<h2 id="maptry_into--fallible-type-conversion"><a class="header" href="#maptry_into--fallible-type-conversion"><code>#[map(try_into)]</code> — Fallible Type Conversion</a></h2>
+<p>Use this when the source field type implements <code>TryInto&lt;TargetType&gt;</code>:</p>
+<pre><code class="language-rust ignore">struct Source { value: i64 }
+
+#[derive(TryMapFrom)]
+#[try_map_from(Source)]
+struct Target {
+    #[map(try_into)]
+    value: u32,  // calls source.value.try_into()
+}</code></pre>
+<h2 id="maptry_with--fn--fallible-custom-function"><a class="header" href="#maptry_with--fn--fallible-custom-function"><code>#[map(try_with = "fn")]</code> — Fallible Custom Function</a></h2>
+<p>Use this with a function that returns <code>Result&lt;T, E&gt;</code>:</p>
+<pre><code class="language-rust ignore">use std::num::ParseIntError;
+
+fn parse_port(s: String) -&gt; Result&lt;u16, ParseIntError&gt; {
+    s.parse::&lt;u16&gt;()
+}
+
+struct Config { port: String }
+
+#[derive(TryMapFrom)]
+#[try_map_from(Config)]
+struct ValidConfig {
+    #[map(try_with = "parse_port")]
+    port: u16,
+}</code></pre>
+<h2 id="mixing-infallible-and-fallible-attributes"><a class="header" href="#mixing-infallible-and-fallible-attributes">Mixing Infallible and Fallible Attributes</a></h2>
+<p>You can freely mix all attributes in a single <code>TryMapFrom</code> struct:</p>
+<pre><code class="language-rust ignore">#[derive(TryMapFrom)]
+#[try_map_from(Source)]
+struct Target {
+    id: u64,                                    // direct (infallible)
+    #[map(from = "raw_name", with = "to_upper")]
+    name: String,                               // infallible rename + transform
+    #[map(try_into)]
+    count: u32,                                 // fallible type conversion
+    #[map(from = "age_str", try_with = "parse")]
+    age: u8,                                    // fallible rename + transform
+    #[map(skip, default)]
+    request_id: String,                         // skipped
+}</code></pre>
+<h2 id="error-handling--maperror"><a class="header" href="#error-handling--maperror">Error Handling — <code>MapError</code></a></h2>
+<p>When a conversion fails, you get a <code>struct_mapper::MapError</code> which tells you exactly <strong>which field</strong> failed:</p>
+<pre><code class="language-rust ignore">use struct_mapper::{TryMapFrom, MapError};
+
+let result = Target::try_from(source);
+match result {
+    Ok(target) =&gt; println!("Success: {:?}", target),
+    Err(e) =&gt; {
+        println!("Field: {}", e.field);     // e.g., "count"
+        println!("Error: {}", e);           // "mapping failed at field `count`: ..."
+        println!("Source: {:?}", e.source); // underlying error
+    }
+}</code></pre>
+<blockquote>
+<p><strong>Tip:</strong> <code>MapError</code> implements <code>std::error::Error</code>, <code>Display</code>, and <code>Debug</code>, so it works seamlessly with <code>?</code> operator and error handling libraries like <code>anyhow</code> or <code>thiserror</code>.</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
 <h1 id="attribute-reference"><a class="header" href="#attribute-reference">Attribute Reference</a></h1>
 <p>This page provides a quick summary of all attributes available in <code>struct-mapper</code>.</p>
 <h2 id="struct-level-attributes"><a class="header" href="#struct-level-attributes">Struct-Level Attributes</a></h2>
@@ -473,7 +561,8 @@ fn main() {
 <tr><th style="text-align: left">Attribute</th><th style="text-align: center">Required</th><th style="text-align: left">Description</th></tr>
 </thead>
 <tbody>
-<tr><td style="text-align: left"><code>#[map_from(Type)]</code></td><td style="text-align: center"><strong>Yes</strong></td><td style="text-align: left">Specifies the source type for <code>From&lt;Type&gt;</code> generation</td></tr>
+<tr><td style="text-align: left"><code>#[map_from(Type)]</code></td><td style="text-align: center"><strong>Yes</strong> (with <code>MapFrom</code>)</td><td style="text-align: left">Specifies the source type for <code>From&lt;Type&gt;</code> generation</td></tr>
+<tr><td style="text-align: left"><code>#[try_map_from(Type)]</code></td><td style="text-align: center"><strong>Yes</strong> (with <code>TryMapFrom</code>)</td><td style="text-align: left">Specifies the source type for <code>TryFrom&lt;Type&gt;</code> generation</td></tr>
 </tbody>
 </table>
 </div>
@@ -488,10 +577,12 @@ fn main() {
 <tr><td style="text-align: left"><code>#[map(skip, default)]</code></td><td style="text-align: left">Skip this field; use <code>Default::default()</code></td></tr>
 <tr><td style="text-align: left"><code>#[map(into)]</code></td><td style="text-align: left">Call <code>.into()</code> on the source field value</td></tr>
 <tr><td style="text-align: left"><code>#[map(with = "path")]</code></td><td style="text-align: left">Apply a conversion function <code>fn(SourceFieldType) -&gt; TargetFieldType</code></td></tr>
+<tr><td style="text-align: left"><code>#[map(try_into)]</code></td><td style="text-align: left">Call <code>.try_into()</code> on the source field value <em>(TryMapFrom only)</em></td></tr>
+<tr><td style="text-align: left"><code>#[map(try_with = "path")]</code></td><td style="text-align: left">Apply a fallible function <code>fn(S) -&gt; Result&lt;T, E&gt;</code> <em>(TryMapFrom only)</em></td></tr>
 </tbody>
 </table>
 </div>
-<p>Attributes can be combined, for example: <code>#[map(from = "old", with = "convert")]</code></p>
+<p>Attributes can be combined, for example: <code>#[map(from = "old", try_with = "parse")]</code></p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="error-messages"><a class="header" href="#error-messages">Error Messages</a></h1>
 <p><code>struct-mapper</code> is built to provide a premium developer experience. A major part of this is providing excellent, span-accurate compile errors when something goes wrong.</p>
@@ -542,6 +633,22 @@ If you try to map <em>from</em> a field while also telling the macro to <em>skip
         <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
         <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
         <script>

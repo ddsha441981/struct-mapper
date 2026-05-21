@@ -280,9 +280,8 @@
 //!
 //! ## Limitations
 //!
-//! **v0.1 constraints:**
+//! **v0.2 constraints:**
 //!
-//! - Only infallible `From` conversion. `TryFrom` is planned for v0.2.
 //! - Only named-field structs. Tuple structs and enums are not yet supported.
 //! - Generic target structs work; generic source types need manual handling.
 
@@ -329,3 +328,103 @@
 ///
 /// Attributes can be combined: `#[map(from = "old_name", with = "convert_fn")]`
 pub use struct_mapper_derive::MapFrom;
+
+/// Derive macro that generates `impl TryFrom<Source> for Target` by mapping struct fields.
+///
+/// Use this when one or more field conversions can fail. The generated implementation
+/// returns `Result<Self, MapError>`.
+///
+/// # Example
+///
+/// ```rust
+/// use struct_mapper::TryMapFrom;
+/// use std::convert::TryInto;
+///
+/// struct RawInput {
+///     count: i64,
+///     name: String,
+/// }
+///
+/// #[derive(TryMapFrom)]
+/// #[try_map_from(RawInput)]
+/// struct ValidInput {
+///     #[map(try_into)]
+///     count: u32,
+///     name: String,
+/// }
+///
+/// let raw = RawInput { count: 42, name: "Alice".into() };
+/// let valid: ValidInput = raw.try_into().unwrap();
+/// assert_eq!(valid.count, 42);
+/// assert_eq!(valid.name, "Alice");
+/// ```
+///
+/// # Field Attributes
+///
+/// All `MapFrom` attributes work here, plus:
+///
+/// | Attribute | Description |
+/// |:----------|:------------|
+/// | `#[map(try_into)]` | Call `.try_into()` on the source value (fallible) |
+/// | `#[map(try_with = "fn")]` | Apply a fallible conversion function |
+pub use struct_mapper_derive::TryMapFrom;
+
+/// Error type for fallible struct mapping via [`TryMapFrom`].
+///
+/// Contains the field name where the conversion failed and the underlying error.
+///
+/// # Example
+///
+/// ```rust
+/// use struct_mapper::{TryMapFrom, MapError};
+/// use std::convert::TryInto;
+///
+/// struct Source { value: i64 }
+///
+/// #[derive(Debug, TryMapFrom)]
+/// #[try_map_from(Source)]
+/// struct Target {
+///     #[map(try_into)]
+///     value: u32,
+/// }
+///
+/// let src = Source { value: -1 };
+/// let err = Target::try_from(src).unwrap_err();
+/// assert_eq!(err.field, "value");
+/// ```
+#[derive(Debug)]
+pub struct MapError {
+    /// The name of the field where conversion failed.
+    pub field: &'static str,
+    /// The underlying error that caused the failure.
+    pub source: Box<dyn std::error::Error + Send + Sync>,
+}
+
+impl MapError {
+    /// Create a new mapping error for a specific field.
+    pub fn field<E: std::error::Error + Send + Sync + 'static>(
+        field: &'static str,
+        error: E,
+    ) -> Self {
+        MapError {
+            field,
+            source: Box::new(error),
+        }
+    }
+}
+
+impl std::fmt::Display for MapError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "mapping failed at field `{}`: {}",
+            self.field, self.source
+        )
+    }
+}
+
+impl std::error::Error for MapError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&*self.source)
+    }
+}
