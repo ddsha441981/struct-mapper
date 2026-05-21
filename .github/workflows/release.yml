@@ -28,8 +28,14 @@ jobs:
       - name: Run clippy
         run: cargo clippy --workspace -- -D warnings
 
+      # Authenticate via OIDC for crates.io Trusted Publishing
+      - id: auth
+        uses: rust-lang/crates-io-auth-action@v1
+
       # Publish derive crate first (dependency)
       - name: Publish struct-mapper-derive
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
         run: cargo publish -p struct-mapper-derive
 
       # Wait for crates.io to index
@@ -38,6 +44,8 @@ jobs:
 
       # Publish main crate
       - name: Publish struct-mapper
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
         run: cargo publish -p struct-mapper
 
       # Create GitHub Release
